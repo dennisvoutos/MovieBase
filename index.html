@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovieRama</title>
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <div style="padding: 20px;">
+        <header class="app-header">
+            <div class="logo-title-container">
+                <div class="logo">
+                    <img src="assets/logo.png" alt="MovieRama Logo" class="logo-img">
+                </div>
+                <h1 class="app-title">MovieRama</h1>
+            </div>
+            <p class="app-subtitle">Find your next movie here!</p>
+            
+            <!-- Search Box -->
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    id="movie-search" 
+                    class="search-input" 
+                    placeholder="Search for movies..."
+                    autocomplete="off"
+                >
+                <div class="search-icon">🔍</div>
+            </div>
+        </header>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="js/api/tmdb.js"></script>
+    <script src="js/components/movieDetails.js"></script>
+    <script src="js/pages/nowPlaying.js"></script>
+    <script src="js/pages/search.js"></script>
+</body>
+</html>
