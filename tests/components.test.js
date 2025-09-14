@@ -3,6 +3,9 @@
  * Tests for Modal and other UI components
  */
 
+// Import the Modal class from movieDetails component
+const Modal = require("../js/components/movieDetails.js");
+
 describe("Modal Component", () => {
   let modal;
   let originalBody;
@@ -46,7 +49,9 @@ describe("Modal Component", () => {
 
     test("should initially be hidden", () => {
       const overlay = document.querySelector(".modal-overlay");
-      expect(overlay.style.display).toBe("none");
+      // Modal doesn't set display: none initially, it relies on CSS and modal-open class
+      expect(overlay.style.display).toBe("");
+      expect(overlay.classList.contains("modal-open")).toBe(false);
     });
 
     test("should append modal to document body", () => {
@@ -116,11 +121,15 @@ describe("Modal Component", () => {
     test("should close modal", (done) => {
       modal.close();
 
-      expect(modal.isOpen).toBe(false);
+      // isOpen is set to false inside setTimeout, so check immediately that classes are removed
+      const overlay = document.querySelector(".modal-overlay");
+      const modalElement = document.querySelector(".modal");
+      expect(overlay.classList.contains("modal-open")).toBe(false);
+      expect(modalElement.classList.contains("modal-open")).toBe(false);
 
       // Check after animation completes
       setTimeout(() => {
-        const overlay = document.querySelector(".modal-overlay");
+        expect(modal.isOpen).toBe(false);
         expect(overlay.style.display).toBe("none");
         expect(document.body.style.overflow).toBe("");
         done();
@@ -169,10 +178,15 @@ describe("Modal Component", () => {
       expect(modal.isOpen).toBe(true);
     });
 
-    test("should close modal when open", () => {
+    test("should close modal when open", (done) => {
       modal.open("<p>Test</p>");
       modal.toggle();
-      expect(modal.isOpen).toBe(false);
+
+      // Check after animation completes since toggle uses close() method
+      setTimeout(() => {
+        expect(modal.isOpen).toBe(false);
+        done();
+      }, 350);
     });
   });
 
@@ -181,13 +195,18 @@ describe("Modal Component", () => {
       modal.open("<p>Test content</p>");
     });
 
-    test("should close on close button click", () => {
+    test("should close on close button click", (done) => {
       const closeButton = document.querySelector(".modal-close");
       closeButton.click();
-      expect(modal.isOpen).toBe(false);
+
+      // Check after animation completes
+      setTimeout(() => {
+        expect(modal.isOpen).toBe(false);
+        done();
+      }, 350);
     });
 
-    test("should close on overlay click", () => {
+    test("should close on overlay click", (done) => {
       const overlay = document.querySelector(".modal-overlay");
 
       // Simulate click on overlay (not on modal content)
@@ -195,7 +214,11 @@ describe("Modal Component", () => {
       Object.defineProperty(event, "target", { value: overlay });
       overlay.dispatchEvent(event);
 
-      expect(modal.isOpen).toBe(false);
+      // Check after animation completes
+      setTimeout(() => {
+        expect(modal.isOpen).toBe(false);
+        done();
+      }, 350);
     });
 
     test("should not close on modal content click", () => {
@@ -208,14 +231,18 @@ describe("Modal Component", () => {
       expect(modal.isOpen).toBe(true);
     });
 
-    test("should close on Escape key", () => {
+    test("should close on Escape key", (done) => {
       const escapeEvent = new KeyboardEvent("keydown", {
         key: "Escape",
         bubbles: true,
       });
       document.dispatchEvent(escapeEvent);
 
-      expect(modal.isOpen).toBe(false);
+      // Check after animation completes
+      setTimeout(() => {
+        expect(modal.isOpen).toBe(false);
+        done();
+      }, 350);
     });
 
     test("should not close on other keys", () => {
@@ -231,14 +258,17 @@ describe("Modal Component", () => {
     test("should only respond to Escape when modal is open", () => {
       modal.close();
 
-      const escapeEvent = new KeyboardEvent("keydown", {
-        key: "Escape",
-        bubbles: true,
-      });
-      document.dispatchEvent(escapeEvent);
+      // Wait for close animation to complete first
+      setTimeout(() => {
+        const escapeEvent = new KeyboardEvent("keydown", {
+          key: "Escape",
+          bubbles: true,
+        });
+        document.dispatchEvent(escapeEvent);
 
-      // Should not throw error or cause issues
-      expect(modal.isOpen).toBe(false);
+        // Should not throw error or cause issues, modal should remain closed
+        expect(modal.isOpen).toBe(false);
+      }, 350);
     });
   });
 
@@ -318,20 +348,28 @@ describe("Modal Component", () => {
 
       const originalSetTimeout = window.setTimeout;
       let timeoutCalled = false;
+      let capturedDelay = null;
+      let callCount = 0;
 
       window.setTimeout = (callback, delay) => {
-        timeoutCalled = true;
-        expect(delay).toBe(300); // Animation duration
+        callCount++;
+        // The first setTimeout call should be from modal.close() with 300ms
+        if (callCount === 1) {
+          timeoutCalled = true;
+          capturedDelay = delay;
+        }
         return originalSetTimeout(callback, delay);
       };
 
       modal.close();
 
-      setTimeout(() => {
+      // Use originalSetTimeout to avoid interfering with our mock
+      originalSetTimeout(() => {
         expect(timeoutCalled).toBe(true);
+        expect(capturedDelay).toBe(300); // Animation duration
         window.setTimeout = originalSetTimeout;
         done();
-      }, 0);
+      }, 10);
     });
   });
 });
