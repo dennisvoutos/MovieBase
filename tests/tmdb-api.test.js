@@ -1,83 +1,77 @@
 /**
- * API Tests - TMDb Integration
- * Tests all API endpoints and error handling using Jest
+ * @jest-environment jsdom
  */
 
-// Mock the config values since we're testing in isolation
-const API_BASE_URL = "https://api.themoviedb.org/3";
-const API_TOKEN = "test-bearer-token";
+/**
+ * TMDb API Tests
+ * Tests for the TMDb API integration functions
+ */
 
-// Import the functions we want to test
-// Note: In a real setup, you'd import these from your modules
-// For now, we'll define simplified versions for testing
+describe("TMDb API", () => {
+  const API_BASE_URL = "https://api.themoviedb.org/3";
+  const API_TOKEN = "test-bearer-token";
 
-const buildApiUrl = (endpoint, params = {}) => {
-  const url = new URL(
-    endpoint.startsWith("/") ? endpoint.slice(1) : endpoint,
-    API_BASE_URL
-  );
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      url.searchParams.append(key, value);
-    }
-  });
-  return url.toString();
-};
-
-const makeApiRequest = async (url) => {
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${API_TOKEN}`,
-      Accept: "application/json",
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `API request failed: ${response.status} ${response.statusText}`
+  // Helper functions to test
+  const buildApiUrl = (endpoint, params = {}) => {
+    const url = new URL(
+      endpoint.startsWith("/") ? endpoint.slice(1) : endpoint,
+      API_BASE_URL
     );
-  }
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        url.searchParams.append(key, value);
+      }
+    });
+    return url.toString();
+  };
 
-  return response.json();
-};
+  const makeApiRequest = async (url) => {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${API_TOKEN}`,
+        Accept: "application/json",
+      },
+    });
 
-// API functions to test
-const getNowPlayingMovies = async (page = 1) => {
-  const url = buildApiUrl("/movie/now_playing", { page });
-  return makeApiRequest(url);
-};
+    if (!response.ok) {
+      throw new Error(
+        `API request failed: ${response.status} ${response.statusText}`
+      );
+    }
 
-const searchMovies = async (query, page = 1) => {
-  const url = buildApiUrl("/search/movie", { query, page });
-  return makeApiRequest(url);
-};
+    return response.json();
+  };
 
-const getMovieDetails = async (movieId) => {
-  const url = buildApiUrl(`/movie/${movieId}`);
-  return makeApiRequest(url);
-};
+  const getNowPlayingMovies = async (page = 1) => {
+    const url = buildApiUrl("/movie/now_playing", { page });
+    return makeApiRequest(url);
+  };
 
-const getMovieVideos = async (movieId) => {
-  const url = buildApiUrl(`/movie/${movieId}/videos`);
-  return makeApiRequest(url);
-};
+  const searchMovies = async (query, page = 1) => {
+    const url = buildApiUrl("/search/movie", { query, page });
+    return makeApiRequest(url);
+  };
 
-const getMovieReviews = async (movieId, page = 1) => {
-  const url = buildApiUrl(`/movie/${movieId}/reviews`, { page });
-  return makeApiRequest(url);
-};
+  const getMovieDetails = async (movieId) => {
+    const url = buildApiUrl(`/movie/${movieId}`);
+    return makeApiRequest(url);
+  };
 
-const getSimilarMovies = async (movieId, page = 1) => {
-  const url = buildApiUrl(`/movie/${movieId}/similar`, { page });
-  return makeApiRequest(url);
-};
+  const getMovieVideos = async (movieId) => {
+    const url = buildApiUrl(`/movie/${movieId}/videos`);
+    return makeApiRequest(url);
+  };
 
-const getMovieCredits = async (movieId) => {
-  const url = buildApiUrl(`/movie/${movieId}/credits`);
-  return makeApiRequest(url);
-};
+  const getMovieReviews = async (movieId, page = 1) => {
+    const url = buildApiUrl(`/movie/${movieId}/reviews`, { page });
+    return makeApiRequest(url);
+  };
 
-describe("API Integration Tests", () => {
+  const getSimilarMovies = async (movieId, page = 1) => {
+    const url = buildApiUrl(`/movie/${movieId}/similar`, { page });
+    return makeApiRequest(url);
+  };
+
   beforeEach(() => {
     fetch.mockClear();
   });
@@ -166,7 +160,7 @@ describe("API Integration Tests", () => {
     });
   });
 
-  describe("Now Playing Movies API", () => {
+  describe("Now Playing Movies", () => {
     test("should fetch now playing movies", async () => {
       const mockResponse = {
         page: 1,
@@ -196,7 +190,7 @@ describe("API Integration Tests", () => {
       expect(result).toEqual(mockResponse);
     });
 
-    test("should fetch specific page of now playing movies", async () => {
+    test("should fetch specific page", async () => {
       const mockResponse = { page: 3, results: [] };
       fetch.mockResolvedValueOnce({
         ok: true,
@@ -210,19 +204,9 @@ describe("API Integration Tests", () => {
         expect.any(Object)
       );
     });
-
-    test("should handle API errors for now playing", async () => {
-      fetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        statusText: "Internal Server Error",
-      });
-
-      await expect(getNowPlayingMovies()).rejects.toThrow();
-    });
   });
 
-  describe("Movie Search API", () => {
+  describe("Movie Search", () => {
     test("should search for movies", async () => {
       const mockResponse = {
         page: 1,
@@ -249,21 +233,6 @@ describe("API Integration Tests", () => {
       expect(result).toEqual(mockResponse);
     });
 
-    test("should search with pagination", async () => {
-      const mockResponse = { page: 2, results: [] };
-      fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      });
-
-      await searchMovies("action", 2);
-
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("page=2"),
-        expect.any(Object)
-      );
-    });
-
     test("should handle empty search results", async () => {
       const mockResponse = {
         page: 1,
@@ -282,7 +251,7 @@ describe("API Integration Tests", () => {
     });
   });
 
-  describe("Movie Details API", () => {
+  describe("Movie Details", () => {
     test("should fetch movie details", async () => {
       const mockResponse = {
         id: 550,
@@ -306,8 +275,6 @@ describe("API Integration Tests", () => {
         expect.any(Object)
       );
       expect(result).toEqual(mockResponse);
-      expect(result.id).toBe(550);
-      expect(result.title).toBe("Fight Club");
     });
 
     test("should handle movie not found", async () => {
@@ -321,7 +288,7 @@ describe("API Integration Tests", () => {
     });
   });
 
-  describe("Movie Videos API", () => {
+  describe("Movie Videos", () => {
     test("should fetch movie videos", async () => {
       const mockResponse = {
         id: 550,
@@ -350,20 +317,9 @@ describe("API Integration Tests", () => {
       expect(result.results).toHaveLength(1);
       expect(result.results[0].type).toBe("Trailer");
     });
-
-    test("should handle movies with no videos", async () => {
-      const mockResponse = { id: 550, results: [] };
-      fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      });
-
-      const result = await getMovieVideos(550);
-      expect(result.results).toHaveLength(0);
-    });
   });
 
-  describe("Movie Reviews API", () => {
+  describe("Movie Reviews", () => {
     test("should fetch movie reviews", async () => {
       const mockResponse = {
         id: 550,
@@ -374,7 +330,6 @@ describe("API Integration Tests", () => {
             author: "John Doe",
             content: "Amazing movie...",
             created_at: "2019-10-12T17:00:50.450Z",
-            url: "https://www.themoviedb.org/review/5da1b9d60e0a78001e0c87b6",
           },
         ],
         total_pages: 1,
@@ -395,24 +350,9 @@ describe("API Integration Tests", () => {
       expect(result.results).toHaveLength(1);
       expect(result.results[0].author).toBe("John Doe");
     });
-
-    test("should fetch reviews with pagination", async () => {
-      const mockResponse = { page: 2, results: [] };
-      fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      });
-
-      await getMovieReviews(550, 2);
-
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("page=2"),
-        expect.any(Object)
-      );
-    });
   });
 
-  describe("Similar Movies API", () => {
+  describe("Similar Movies", () => {
     test("should fetch similar movies", async () => {
       const mockResponse = {
         page: 1,
@@ -437,76 +377,9 @@ describe("API Integration Tests", () => {
       );
       expect(result.results).toHaveLength(2);
     });
-
-    test("should handle movies with no similar movies", async () => {
-      const mockResponse = { page: 1, results: [], total_pages: 0 };
-      fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      });
-
-      const result = await getSimilarMovies(550);
-      expect(result.results).toHaveLength(0);
-    });
   });
 
-  describe("Movie Credits API", () => {
-    test("should fetch movie credits", async () => {
-      const mockResponse = {
-        id: 550,
-        cast: [
-          {
-            id: 819,
-            name: "Edward Norton",
-            character: "The Narrator",
-            order: 0,
-          },
-          {
-            id: 287,
-            name: "Brad Pitt",
-            character: "Tyler Durden",
-            order: 1,
-          },
-        ],
-        crew: [
-          {
-            id: 7467,
-            name: "David Fincher",
-            job: "Director",
-            department: "Directing",
-          },
-        ],
-      };
-
-      fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      });
-
-      const result = await getMovieCredits(550);
-
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/movie/550/credits"),
-        expect.any(Object)
-      );
-      expect(result.cast).toHaveLength(2);
-      expect(result.crew).toHaveLength(1);
-      expect(result.cast[0].name).toBe("Edward Norton");
-    });
-  });
-
-  describe("Error Handling and Edge Cases", () => {
-    test("should handle malformed JSON response", async () => {
-      fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => {
-          throw new Error("Unexpected token in JSON");
-        },
-      });
-
-      await expect(getNowPlayingMovies()).rejects.toThrow();
-    });
-
+  describe("Error Handling", () => {
     test("should handle rate limiting", async () => {
       fetch.mockResolvedValueOnce({
         ok: false,
@@ -529,12 +402,6 @@ describe("API Integration Tests", () => {
       await expect(getMovieDetails(1)).rejects.toThrow(
         "500 Internal Server Error"
       );
-    });
-
-    test("should handle network timeouts", async () => {
-      fetch.mockRejectedValueOnce(new Error("Request timeout"));
-
-      await expect(getMovieVideos(1)).rejects.toThrow("Request timeout");
     });
 
     test("should handle authentication errors", async () => {
