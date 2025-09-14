@@ -16,8 +16,6 @@ class MovieRamaApp {
    */
   async init() {
     try {
-      console.log("🎬 Initializing MovieRama App...");
-
       // Wait for DOM to be ready
       if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", () =>
@@ -52,7 +50,6 @@ class MovieRamaApp {
       await this.showNowPlaying();
 
       this.isInitialized = true;
-      console.log("✅ MovieRama App initialized successfully");
     } catch (error) {
       console.error("App initialization failed:", error);
       this.showError("Failed to load application");
@@ -154,7 +151,6 @@ class MovieRamaApp {
         return;
       }
 
-      console.log("🔍 Searching for:", query);
       this.currentPage = "search";
       await this.searchPage.performSearch(query);
     } catch (error) {
@@ -173,7 +169,6 @@ class MovieRamaApp {
         return;
       }
 
-      console.log("🎭 Loading Now Playing movies...");
       this.currentPage = "now-playing";
 
       // Clear search input
@@ -255,8 +250,6 @@ class MovieRamaApp {
    * Clean up application resources
    */
   destroy() {
-    console.log("🧹 Cleaning up MovieRama App...");
-
     // Clean up pages
     if (this.nowPlayingPage?.destroy) {
       this.nowPlayingPage.destroy();

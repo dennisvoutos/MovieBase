@@ -54,25 +54,14 @@ class NowPlayingPage {
 
   async loadMovies() {
     if (this.isLoading || !this.hasMorePages) {
-      console.log("Skipping load:", {
-        isLoading: this.isLoading,
-        hasMorePages: this.hasMorePages,
-      });
       return;
     }
 
-    console.log("Loading page:", this.currentPage);
     this.isLoading = true;
     this.showLoading();
 
     try {
       const data = await window.TMDbAPI.getNowPlayingMovies(this.currentPage);
-      console.log("API Response:", {
-        page: this.currentPage,
-        totalPages: data.total_pages,
-        resultsCount: data.results?.length,
-      });
-
       if (data.results && data.results.length > 0) {
         this.movies.push(...data.results);
         this.renderMovies(data.results);
@@ -80,14 +69,8 @@ class NowPlayingPage {
 
         // Check if there are more pages
         this.hasMorePages = this.currentPage <= data.total_pages;
-        console.log("After loading:", {
-          nextPage: this.currentPage,
-          hasMorePages: this.hasMorePages,
-          totalMovies: this.movies.length,
-        });
       } else {
         this.hasMorePages = false;
-        console.log("No more results, stopping pagination");
       }
     } catch (error) {
       console.error("Failed to load movies:", error);
@@ -282,13 +265,7 @@ class NowPlayingPage {
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        console.log("Intersection observed:", {
-          isIntersecting: entry.isIntersecting,
-          isLoading: this.isLoading,
-          hasMorePages: this.hasMorePages,
-        });
         if (entry.isIntersecting && !this.isLoading && this.hasMorePages) {
-          console.log("Triggering loadMovies from intersection");
           this.loadMovies();
         }
       },
@@ -301,7 +278,6 @@ class NowPlayingPage {
     // Observe the loading element
     if (this.loadingElement) {
       observer.observe(this.loadingElement);
-      console.log("Infinite scroll observer set up on loading element");
     } else {
       console.error("Loading element not found for infinite scroll");
     }
@@ -314,7 +290,6 @@ class NowPlayingPage {
       if (spinner) {
         spinner.style.display = "block";
       }
-      console.log("Showing loading element");
     }
   }
 
@@ -323,12 +298,10 @@ class NowPlayingPage {
       // Only hide loading if we have no more pages to load
       if (!this.hasMorePages) {
         this.loadingElement.style.display = "none";
-        console.log("Hiding loading element - no more pages");
       } else {
         // Keep loading element visible but not spinning for next intersection
         this.loadingElement.querySelector(".loading-spinner").style.display =
           "none";
-        console.log("Hiding spinner but keeping loading element visible");
       }
     }
   }
