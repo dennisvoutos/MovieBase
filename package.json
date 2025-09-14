@@ -1,0 +1,27 @@
+{
+  "name": "movieinfo",
+  "version": "1.0.0",
+  "description": "A modern, client-side movie catalog application that allows users to discover movies, search through an extensive database, and explore detailed information about their favorite films.",
+  "main": "script.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:api": "jest --testNamePattern=\"API\"",
+    "test:components": "jest --testNamePattern=\"Component|Modal\"",
+    "test:utils": "jest --testNamePattern=\"Utility|DOM\"",
+    "test:integration": "jest --testNamePattern=\"Integration\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/preset-env": "^7.28.3",
+    "babel-jest": "^30.1.2",
+    "jest": "^30.1.3",
+    "jest-environment-jsdom": "^30.1.2"
+  }
+}
