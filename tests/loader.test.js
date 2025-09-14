@@ -51,18 +51,17 @@ describe("Loader Component", () => {
     }
 
     isVisible() {
-      return (
-        this.loadingElement &&
-        this.loadingElement.style.display !== "none" &&
-        this.isLoading
-      );
+      if (!this.loadingElement) {
+        return false;
+      }
+      return this.loadingElement.style.display !== "none" && this.isLoading;
     }
 
     setMessage(message) {
       if (this.loadingElement) {
         const messageElement = this.loadingElement.querySelector("p");
         if (messageElement) {
-          messageElement.textContent = message;
+          messageElement.textContent = message === null ? "" : message;
         }
       }
     }
@@ -235,7 +234,7 @@ describe("Loader Component", () => {
       loader.setMessage(null);
 
       const messageElement = loader.loadingElement.querySelector("p");
-      expect(messageElement.textContent).toBe("null");
+      expect(messageElement.textContent).toBe("");
     });
   });
 
