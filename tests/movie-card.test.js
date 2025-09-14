@@ -80,11 +80,14 @@ describe("Movie Card Component", () => {
         .filter(Boolean)
         .join(", ") || "Unknown";
 
-    const rating = movie.vote_average ? movie.vote_average.toFixed(1) : "N/A";
+    const rating =
+      movie.vote_average !== null && movie.vote_average !== undefined
+        ? movie.vote_average.toFixed(1)
+        : "N/A";
 
     const truncateText = (text, length) => {
       if (!text || text.length <= length) return text || "";
-      return text.substring(0, length).trim() + "...";
+      return text.substring(0, length) + "...";
     };
 
     card.innerHTML = `
@@ -245,7 +248,7 @@ describe("Movie Card Component", () => {
       const overview = card.querySelector(".movie-overview");
 
       expect(overview.textContent).toHaveLength(123); // 120 + '...'
-      expect(overview.textContent).toEndWith("...");
+      expect(overview.textContent).toMatch(/\.\.\.$/);
       expect(overview.textContent).toContain(
         "This is a very long movie overview"
       );
