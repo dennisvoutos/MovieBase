@@ -59,7 +59,8 @@ MovieRama is a single-page application built with vanilla JavaScript that provid
 
 ### Prerequisites
 - Modern web browser (Chrome, Firefox, Safari, Edge)
-- Internet connection for API requests
+- Internet connection for API requests  
+- Node.js and npm (for running tests and development tools)
 
 ### Installation
 1. Clone the repository:
@@ -68,7 +69,12 @@ MovieRama is a single-page application built with vanilla JavaScript that provid
    cd MovieBase
    ```
 
-2. Open `index.html` in your preferred web browser or serve through a local development server:
+2. Install development dependencies (for testing):
+   ```bash
+   npm install
+   ```
+
+3. Open `index.html` in your preferred web browser or serve through a local development server:
    ```bash
    # Using Python
    python -m http.server 8000
@@ -90,17 +96,43 @@ The application uses The Movie Database (TMDb) API. The API key is included in t
 ```
 MovieRama/
 ├── index.html          # Main HTML file
+├── script.js           # Legacy script file
+├── babel.config.js     # Babel configuration
+├── jest.config.js      # Jest testing configuration
+├── package.json        # Project dependencies and scripts
 ├── css/
-│   ├── styles.css      # Main stylesheet
-│   └── animations.css  # Animation definitions
+│   ├── components.css  # Component-specific styles
+│   ├── layout.css      # Layout and positioning
+│   ├── reset.css       # CSS reset and normalize
+│   └── variables.css   # CSS custom properties
 ├── js/
 │   ├── app.js          # Main application logic
-│   ├── api.js          # API integration
-│   ├── components/     # Reusable components
-│   └── utils/          # Utility functions
+│   ├── api/
+│   │   └── tmdb.js     # TMDb API integration
+│   ├── components/
+│   │   ├── loader.js   # Loading component
+│   │   ├── movieCard.js # Movie card component
+│   │   └── movieDetails.js # Movie details modal
+│   ├── pages/
+│   │   ├── nowPlaying.js # Now playing page logic
+│   │   └── search.js   # Search functionality
+│   └── utils/
+│       ├── config.js   # Configuration settings
+│       ├── dom.js      # DOM utilities
+│       └── events.js   # Event handling utilities
 ├── assets/
-│   └── images/         # Static images and icons
-└── README.md
+│   └── logo.png        # Application logo
+└── tests/
+    ├── setup.js        # Test environment setup
+    ├── api.test.js     # API integration tests
+    ├── components.test.js # Component tests
+    ├── integration.test.js # Integration tests
+    ├── loader.test.js  # Loader component tests
+    ├── modal.test.js   # Modal component tests
+    ├── movie-card.test.js # Movie card tests
+    ├── simple-api.test.js # Simple API tests
+    ├── tmdb-api.test.js # TMDb API tests
+    └── utils.test.js   # Utility function tests
 ```
 
 ## Usage
@@ -130,14 +162,36 @@ MovieRama/
 - Clean, maintainable code structure
 
 ### Testing
-The application includes comprehensive testing coverage:
-- Unit tests for utility functions
-- Integration tests for API interactions
-- End-to-end tests for user workflows
+
+The application includes comprehensive testing coverage with Jest and JSDOM:
+
+- **Unit tests** for utility functions and individual components
+- **Integration tests** for API interactions and component workflows  
+- **Component tests** for UI components (modal, loader, movie cards)
+- **API tests** for TMDb service integration
+- **End-to-end workflow tests** for complete user journeys
+
+Test files cover:
+- DOM manipulation utilities (`utils.test.js`)
+- API URL construction and encoding (`api.test.js`, `tmdb-api.test.js`)
+- Component behavior and interactions (`components.test.js`, `modal.test.js`)
+- Loading states and error handling (`loader.test.js`)
+- Movie card creation and display (`movie-card.test.js`)
+- Complete application workflows (`integration.test.js`)
 
 To run tests:
 ```bash
+# Install dependencies
+npm install
+
+# Run all tests
 npm test
+
+# Run specific test file
+npx jest loader.test.js
+
+# Run tests with coverage
+npm run test:coverage
 ```
 
 ## Browser Support
