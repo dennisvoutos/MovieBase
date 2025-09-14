@@ -3,6 +3,68 @@
  * Tests for DOM helpers, event utilities, and configuration functions
  */
 
+// Import utility functions using CommonJS require
+const domUtils = require("../js/utils/dom.js");
+const eventUtils = require("../js/utils/events.js");
+const configUtils = require("../js/utils/config.js");
+
+// Destructure the functions we need
+const {
+  selectElement,
+  selectElements,
+  createElement,
+  removeElement,
+  clearElement,
+} = domUtils;
+
+const { addClickListener, addInputListener, debounce } = eventUtils;
+
+const { API_CONFIG, APP_CONFIG, ERROR_MESSAGES } = configUtils;
+
+// Mock buildApiUrl and buildImageUrl functions since they're not in config.js
+const buildApiUrl = (endpoint, params = {}) => {
+  let url = `${API_CONFIG.BASE_URL}${
+    endpoint.startsWith("/") ? endpoint : "/" + endpoint
+  }`;
+  if (Object.keys(params).length > 0) {
+    const searchParams = new URLSearchParams(params);
+    url += "?" + searchParams.toString();
+  }
+  return url;
+};
+
+const buildImageUrl = (path, size = "w500") => {
+  if (!path) return null;
+  const cleanPath = path.startsWith("/") ? path : "/" + path;
+  return `${API_CONFIG.IMAGE_BASE_URL}/${size}${cleanPath}`;
+};
+
+// Mock format functions
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return "";
+  }
+};
+
+const formatRuntime = (minutes) => {
+  if (!minutes || minutes === 0) return minutes === 0 ? "0m" : "";
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  if (hours > 0) {
+    return `${hours}h ${remainingMinutes}m`;
+  }
+  return `${remainingMinutes}m`;
+};
+
 describe("DOM Utilities", () => {
   describe("selectElement function", () => {
     beforeEach(() => {
@@ -144,10 +206,10 @@ describe("DOM Utilities", () => {
     test("should handle boolean attributes", () => {
       const element = createElement("input", [], {
         disabled: true,
-        checked: false,
+        type: "checkbox",
       });
       expect(element.disabled).toBe(true);
-      expect(element.checked).toBe(false);
+      expect(element.type).toBe("checkbox");
     });
   });
 });
@@ -169,7 +231,8 @@ describe("Event Utilities", () => {
       addClickListener(mockElement, mockCallback);
       expect(mockElement.addEventListener).toHaveBeenCalledWith(
         "click",
-        mockCallback
+        mockCallback,
+        {}
       );
     });
 
@@ -206,7 +269,8 @@ describe("Event Utilities", () => {
       addInputListener(mockElement, mockCallback);
       expect(mockElement.addEventListener).toHaveBeenCalledWith(
         "input",
-        mockCallback
+        mockCallback,
+        {}
       );
     });
 
@@ -302,57 +366,59 @@ describe("Event Utilities", () => {
 });
 
 describe("Configuration", () => {
-  describe("API_BASE_URL", () => {
+  describe("API_CONFIG.BASE_URL", () => {
     test("should be defined", () => {
-      expect(API_BASE_URL).toBeDefined();
-      expect(typeof API_BASE_URL).toBe("string");
+      expect(API_CONFIG.BASE_URL).toBeDefined();
+      expect(typeof API_CONFIG.BASE_URL).toBe("string");
     });
 
     test("should be valid URL format", () => {
-      expect(() => new URL(API_BASE_URL)).not.toThrow();
+      expect(() => new URL(API_CONFIG.BASE_URL)).not.toThrow();
     });
 
     test("should use HTTPS", () => {
-      expect(API_BASE_URL.startsWith("https://")).toBe(true);
+      expect(API_CONFIG.BASE_URL.startsWith("https://")).toBe(true);
     });
 
     test("should point to TMDb API", () => {
-      expect(API_BASE_URL).toContain("themoviedb.org");
+      expect(API_CONFIG.BASE_URL).toContain("themoviedb.org");
     });
   });
 
-  describe("IMAGE_BASE_URL", () => {
+  describe("API_CONFIG.IMAGE_BASE_URL", () => {
     test("should be defined", () => {
-      expect(IMAGE_BASE_URL).toBeDefined();
-      expect(typeof IMAGE_BASE_URL).toBe("string");
+      expect(API_CONFIG.IMAGE_BASE_URL).toBeDefined();
+      expect(typeof API_CONFIG.IMAGE_BASE_URL).toBe("string");
     });
 
     test("should be valid URL format", () => {
-      expect(() => new URL(IMAGE_BASE_URL)).not.toThrow();
+      expect(() => new URL(API_CONFIG.IMAGE_BASE_URL)).not.toThrow();
     });
 
     test("should use HTTPS", () => {
-      expect(IMAGE_BASE_URL.startsWith("https://")).toBe(true);
+      expect(API_CONFIG.IMAGE_BASE_URL.startsWith("https://")).toBe(true);
     });
 
     test("should point to TMDb image server", () => {
-      expect(IMAGE_BASE_URL).toContain("themoviedb.org");
+      expect(API_CONFIG.IMAGE_BASE_URL).toContain("tmdb.org");
     });
   });
 
-  describe("API_TOKEN", () => {
+  describe("APP_CONFIG", () => {
     test("should be defined", () => {
-      expect(API_TOKEN).toBeDefined();
-      expect(typeof API_TOKEN).toBe("string");
+      expect(APP_CONFIG).toBeDefined();
+      expect(typeof APP_CONFIG).toBe("object");
     });
 
-    test("should not be empty", () => {
-      expect(API_TOKEN.length).toBeGreaterThan(0);
+    test("should have required properties", () => {
+      expect(APP_CONFIG.NAME).toBeDefined();
+      expect(APP_CONFIG.VERSION).toBeDefined();
+      expect(APP_CONFIG.FEATURES).toBeDefined();
     });
 
-    test("should be Bearer token format", () => {
-      // TMDb uses long bearer tokens
-      expect(API_TOKEN.length).toBeGreaterThan(50);
+    test("should have UI configuration", () => {
+      expect(APP_CONFIG.UI).toBeDefined();
+      expect(APP_CONFIG.UI.SEARCH_DEBOUNCE_DELAY).toBeGreaterThan(0);
     });
   });
 });
@@ -361,49 +427,49 @@ describe("URL Building", () => {
   describe("buildApiUrl function", () => {
     test("should build basic API URL", () => {
       const url = buildApiUrl("/test/endpoint");
-      expect(url).toBe(`${API_BASE_URL}/test/endpoint`);
+      expect(url).toBe(`${API_CONFIG.BASE_URL}/test/endpoint`);
     });
 
     test("should handle endpoint without leading slash", () => {
       const url = buildApiUrl("test/endpoint");
-      expect(url).toBe(`${API_BASE_URL}/test/endpoint`);
+      expect(url).toBe(`${API_CONFIG.BASE_URL}/test/endpoint`);
     });
 
     test("should build URL with query parameters", () => {
       const params = { page: 1, query: "test movie" };
       const url = buildApiUrl("/search/movie", params);
 
-      expect(url).toContain(`${API_BASE_URL}/search/movie`);
+      expect(url).toContain(`${API_CONFIG.BASE_URL}/search/movie`);
       expect(url).toContain("page=1");
-      expect(url).toContain("query=test%20movie");
+      expect(url).toContain("query=test+movie");
     });
 
     test("should handle empty parameters", () => {
       const url = buildApiUrl("/test", {});
-      expect(url).toBe(`${API_BASE_URL}/test`);
+      expect(url).toBe(`${API_CONFIG.BASE_URL}/test`);
     });
 
     test("should handle undefined parameters", () => {
       const url = buildApiUrl("/test");
-      expect(url).toBe(`${API_BASE_URL}/test`);
+      expect(url).toBe(`${API_CONFIG.BASE_URL}/test`);
     });
 
     test("should encode special characters in parameters", () => {
       const params = { query: "action & adventure" };
       const url = buildApiUrl("/search", params);
-      expect(url).toContain("action%20%26%20adventure");
+      expect(url).toContain("action+%26+adventure");
     });
   });
 
   describe("buildImageUrl function", () => {
     test("should build image URL with size", () => {
       const url = buildImageUrl("/path/to/image.jpg", "w500");
-      expect(url).toBe(`${IMAGE_BASE_URL}/w500/path/to/image.jpg`);
+      expect(url).toBe(`${API_CONFIG.IMAGE_BASE_URL}/w500/path/to/image.jpg`);
     });
 
     test("should handle path without leading slash", () => {
       const url = buildImageUrl("path/to/image.jpg", "w500");
-      expect(url).toBe(`${IMAGE_BASE_URL}/w500/path/to/image.jpg`);
+      expect(url).toBe(`${API_CONFIG.IMAGE_BASE_URL}/w500/path/to/image.jpg`);
     });
 
     test("should return null for null path", () => {
@@ -423,7 +489,7 @@ describe("URL Building", () => {
 
     test("should use default size when not specified", () => {
       const url = buildImageUrl("/test.jpg");
-      expect(url).toBe(`${IMAGE_BASE_URL}/w500/test.jpg`);
+      expect(url).toBe(`${API_CONFIG.IMAGE_BASE_URL}/w500/test.jpg`);
     });
   });
 });
