@@ -51,9 +51,13 @@ class Modal {
   }
 
   bindEvents() {
+    if (!this.overlay) return;
+
     // Close on close button click
     const closeButton = this.overlay.querySelector(".modal-close");
-    closeButton.addEventListener("click", () => this.close());
+    if (closeButton) {
+      closeButton.addEventListener("click", () => this.close());
+    }
 
     // Close on overlay click (but not on modal content click)
     this.overlay.addEventListener("click", (e) => {
@@ -71,7 +75,7 @@ class Modal {
   }
 
   open(content = "") {
-    if (this.isOpen) return;
+    if (this.isOpen || !this.overlay || !this.modal) return;
 
     this.setContent(content);
     this.isOpen = true;
@@ -80,17 +84,21 @@ class Modal {
 
     // Add classes for animation
     requestAnimationFrame(() => {
-      this.overlay.classList.add("modal-open");
-      this.modal.classList.add("modal-open");
+      if (this.overlay && this.modal) {
+        this.overlay.classList.add("modal-open");
+        this.modal.classList.add("modal-open");
+      }
     });
 
     // Focus the close button for accessibility
     const closeButton = this.overlay.querySelector(".modal-close");
-    closeButton.focus();
+    if (closeButton) {
+      closeButton.focus();
+    }
   }
 
   close() {
-    if (!this.isOpen) return;
+    if (!this.isOpen || !this.overlay || !this.modal) return;
 
     this.isOpen = false;
     this.overlay.classList.remove("modal-open");
@@ -98,14 +106,20 @@ class Modal {
 
     // Hide after animation
     setTimeout(() => {
-      this.overlay.style.display = "none";
+      if (this.overlay) {
+        this.overlay.style.display = "none";
+      }
       document.body.style.overflow = "";
     }, 300);
   }
 
   setContent(content) {
+    if (!this.overlay) return;
+
     const modalBody = this.overlay.querySelector(".modal-body");
-    modalBody.innerHTML = content;
+    if (modalBody) {
+      modalBody.innerHTML = content;
+    }
   }
 
   toggle(content = "") {
