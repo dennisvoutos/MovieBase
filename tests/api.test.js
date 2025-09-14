@@ -12,16 +12,26 @@ const API_TOKEN = "test-bearer-token";
 // For now, we'll define simplified versions for testing
 
 const buildApiUrl = (endpoint, params = {}) => {
-  const url = new URL(
-    endpoint.startsWith("/") ? endpoint.slice(1) : endpoint,
-    API_BASE_URL
-  );
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      url.searchParams.append(key, value);
-    }
-  });
-  return url.toString();
+  let cleanEndpoint = endpoint;
+  // Ensure endpoint starts with / but don't double up
+  if (!cleanEndpoint.startsWith("/")) {
+    cleanEndpoint = "/" + cleanEndpoint;
+  }
+  // Construct URL by simply concatenating base URL with endpoint
+  let url = API_BASE_URL + cleanEndpoint;
+
+  // Add query parameters if any
+  if (Object.keys(params).length > 0) {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, value);
+      }
+    });
+    url += "?" + searchParams.toString();
+  }
+
+  return url;
 };
 
 const makeApiRequest = async (url) => {
@@ -101,7 +111,7 @@ describe("API Integration Tests", () => {
 
     test("should handle special characters in query", () => {
       const url = buildApiUrl("/search/movie", { query: "Fast & Furious" });
-      expect(url).toContain("Fast%20%26%20Furious");
+      expect(url).toContain("Fast+%26+Furious");
     });
 
     test("should ignore null and undefined parameters", () => {
@@ -243,7 +253,7 @@ describe("API Integration Tests", () => {
         expect.any(Object)
       );
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("query=Fight%20Club"),
+        expect.stringContaining("query=Fight+Club"),
         expect.any(Object)
       );
       expect(result).toEqual(mockResponse);
